@@ -26,53 +26,58 @@ namespace CatsItems
 
         private void Update()
         {
-            if (!LevelLoader.IsLoading()) //i don't know if i actually need this check
-            {
-                if (Servings == 0)
-                {
-                    if (_waterPlane.gameObject.activeInHierarchy)
-                    {
-                        _waterPlane.gameObject.SetActive(false);
-                    }
-
-                    _isSalty = false;
-                }
-                else
-                {
-                    if (!_waterPlane.gameObject.activeInHierarchy) _waterPlane.gameObject.SetActive(true);
-                    float waterPlanePosition = (Servings / 5f);
-                    float waterPlaneSize = 1f - (0.25f - 0.25f * waterPlanePosition);
-
-                    _waterPlane.localPosition = new Vector3(0f, -(0.24f * (1f - waterPlanePosition)), 0f);
-                    _waterPlane.localScale = new Vector3(waterPlaneSize, waterPlaneSize, waterPlaneSize);
-                }
-
-                if (_fillPoint.position.y < 0f && Servings != 5)
-                {
-                    typeof(Cooking).GetField("_cookingHours", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(Cooking, 2f);
-                    Servings = 5;
-                    _isSalty = true;
-                }
-                else
-                {
-                    if (!IsPickedUp)
-                    {
-                        float tilt = CheckTilt();
-
-                        if (Singleton<AtmosphereStorm>.Instance.Rain > 0 && tilt > 0.5f && Servings < 5)
-                        {
-                            _rainFill += Time.deltaTime;
-
-                            if (_rainFill >= SECONDS_TO_REFILL_RAIN)
-                            {
-                                CollectRain();
-                            }
-                        }
-                    }
-                }
-                CheckWater();
-            }
-        }
+            bool flag = !LevelLoader.IsLoading();
+			if (flag)
+			{
+				bool flag2 = base.Servings == 0;
+				if (flag2)
+				{
+					bool activeInHierarchy = this._waterPlane.gameObject.activeInHierarchy;
+					if (activeInHierarchy)
+					{
+						this._waterPlane.gameObject.SetActive(false);
+					}
+					this._isSalty = false;
+				}
+				else
+				{
+					bool flag3 = !this._waterPlane.gameObject.activeInHierarchy;
+					if (flag3)
+					{
+						this._waterPlane.gameObject.SetActive(true);
+					}
+					float num = (float)base.Servings / base.OriginalServings;
+					float num2 = 1f - (0.25f - 0.25f * num);
+					this._waterPlane.localPosition = new Vector3(0f, -(0.24f * (1f - num)), 0f);
+					this._waterPlane.localScale = new Vector3(num2, num2, num2);
+				}
+				bool flag4 = this._fillPoint.position.y < 0f && base.Servings != base.OriginalServings;
+				if (flag4)
+				{
+					typeof(Cooking).GetField("_cookingHours", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(base.Cooking, 2f);
+					base.Servings = OriginalServings;
+					this._isSalty = true;
+				}
+				else
+				{
+					bool flag5 = !base.IsPickedUp;
+					if (flag5)
+					{
+						float num3 = this.CheckTilt();
+						bool flag6 = Singleton<AtmosphereStorm>.Instance.Rain > 0 && num3 > 0.5f && base.Servings < base.OriginalServings;
+						if (flag6)
+						{
+							this._rainFill += Time.deltaTime;
+							bool flag7 = this._rainFill >= 200f;
+							if (flag7)
+							{
+								this.CollectRain();
+							}
+						}
+					}
+				}
+				this.CheckWater();
+			}
 
         public override void OnDestroy()
         {
@@ -129,12 +134,18 @@ namespace CatsItems
 
         private void PlayerJumped()
         {
-            if (IsPickedUp && Servings > 3)
-            {
-                Servings--;
-                _waterParticles.Emit(4);
-            }
-        }
+            bool flag = base.IsPickedUp && base.Servings > base.OriginalServings * 0.6f;
+			if (flag)
+			{
+				int servings = base.Servings;
+				base.Servings = servings - 1;
+				bool flag2 = this._waterParticles != null;
+				if (flag2)
+				{
+					this._waterParticles.Emit(4);
+				}
+			}
+
 
         private void CollectRain()
         {
@@ -162,37 +173,55 @@ namespace CatsItems
 
         private float CheckTilt()
         {
-            float tiltPercentage = Vector3.Dot(transform.up, Vector3.up);
-
-            //there's definitely a prettier way to do this
-            if (tiltPercentage < 0.5f && base.Servings == 5)
-            {
-                Servings--;
-                _waterParticles.Emit(2);
-            }
-            else if (tiltPercentage < 0.45f && Servings == 4)
-            {
-                Servings--;
-                _waterParticles.Emit(2);
-            }
-            else if (tiltPercentage < 0.40f && Servings == 3)
-            {
-                Servings--;
-                _waterParticles.Emit(2);
-            }
-            else if (tiltPercentage < 0.35f && Servings == 2)
-            {
-                Servings--;
-                _waterParticles.Emit(2);
-            }
-            else if (tiltPercentage < 0.30f && Servings == 1)
-            {
-                Servings--;
-                _waterParticles.Emit(2);
-                CheckWater();
-            }
-
-            return tiltPercentage;
+            bool flag = num < 0.5f && base.Servings == base.OriginalServings;
+			if (flag)
+			{
+				int servings = base.Servings;
+				base.Servings = servings - 1;
+				this._waterParticles.Emit(2);
+			}
+			else
+			{
+				bool flag2 = num < 0.45f && base.Servings >= base.OriginalServings * 0.8f;
+				if (flag2)
+				{
+					int servings = base.Servings;
+					base.Servings = servings - 1;
+					this._waterParticles.Emit(2);
+				}
+				else
+				{
+					bool flag3 = num < 0.4f && base.Servings >= base.OriginalServings * 0.6f;
+					if (flag3)
+					{
+						int servings = base.Servings;
+						base.Servings = servings - 1;
+						this._waterParticles.Emit(2);
+					}
+					else
+					{
+						bool flag4 = num < 0.35f && base.Servings >= base.OriginalServings * 0.4f;
+						if (flag4)
+						{
+							int servings = base.Servings;
+							base.Servings = servings - 1;
+							this._waterParticles.Emit(2);
+						}
+						else
+						{
+							bool flag5 = num < 0.3f && base.Servings >= base.OriginalServings * 0.2f;
+							if (flag5)
+							{
+								int servings = base.Servings;
+								base.Servings = servings - 1;
+								this._waterParticles.Emit(2);
+								this.CheckWater();
+							}
+						}
+					}
+				}
+			}
+			return num;
         }
 
         public void BoilToFresh()
